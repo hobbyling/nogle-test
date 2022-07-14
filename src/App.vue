@@ -134,7 +134,8 @@ export default {
         }
       ],
       wsNotify: {},
-      ws: null
+      ws: null,
+      ws2: null
     }
   },
   filters: {
@@ -153,9 +154,13 @@ export default {
       deep: true
     }
   },
+  created () {
+    this.initWebsocket() // 開啓前後端的websocket通道
+  },
   methods: {
     setWsNotify (param) {
       this.wsNotify = param
+      if (this.wsNotify.data.type === 'snapshot') this.websocketclose()
     },
     // 初始websocket
     initWebsocket () {
@@ -165,9 +170,14 @@ export default {
       this.ws.error = this.websocketonerror
       this.ws.onmessage = this.websocketonmessage
       this.ws.onclose = this.websocketclose
+
+      const wsURL2 = 'wss://ws.btse.com/ws/futures'
+      this.ws2 = new WebSocket(wsURL2)
+      this.ws2.onopen = this.websocketonopen
     },
     websocketonopen () {
       console.log('ws 連線成功~~')
+      // this.websocketsend()
     },
     websocketonerror (e) {
       console.error('ws 連線失敗', e)
@@ -176,25 +186,17 @@ export default {
       // 後端通知前端，前端取得資料
       const _data = e.data
       // 當有後端資料送到前端，利用vuex存到共用的state
-      this.setWsNotify({
-        data: JSON.parse(_data)
-      })
+      this.setWsNotify(JSON.parse(_data))
       console.log('ws 取得資料', _data)
     },
     websocketsend (data) {
       // 前端丟資料
       console.log('send data', data)
-      this.ws.send({
-        op: 'subscribe',
-        args: ['update:BTCPFC']
-      })
+      this.ws.send()
     },
     websocketclose () {
       console.log('ws 關閉連線')
     }
-  },
-  created () {
-    this.initWebsocket() // 開啓前後端的websocket通道
   },
   destroy () {
     this.websocketclose() // 關閉websocket通道
