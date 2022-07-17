@@ -263,11 +263,11 @@ export default {
       console.error('ws 連線失敗', e)
     },
     // 後端通知前端，前端取得資料
-    async wsOnMessage (e) {
+    wsOnMessage (e) {
       const _data = JSON.parse(e.data)
 
       if (_data.topic === 'update:BTCPFC') {
-        await this.getQuoteData(_data)
+        this.getQuoteData(_data)
       } else if (_data.topic === 'tradeHistoryApi') {
         this.currentPrice = _data.data[0]
       }
